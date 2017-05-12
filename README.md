@@ -15,5 +15,5 @@ Tournament Project
 10. Connect to the database - `\c tournament`
 11. Create the tables from the tournament.sql file - `\i tournament.sql`
 12. Quit postgress Shell - `\q`
-13. Run unit tests - `python tournament_test.py
+13. Run unit tests - `python tournament_test.py`
 14. Confirm that all tests passed!
