@@ -7,3 +7,15 @@
 -- these lines here.
 
 
+CREATE TABLE players (
+	id serial primary key,
+	name text,
+	wins integer,
+	losses integer);
+
+CREATE TABLE matches (
+	id serial primary key,
+	player_A integer references players(id),
+	player_B integer references players(id),
+	winner integer references players(id) );
+
