@@ -16,7 +16,6 @@ def deleteMatches():
     conn = connect()
     cur = conn.cursor()
     cur.execute("DELETE FROM matches;")
-    cur.execute("UPDATE players set wins = 0, losses = 0;")
     conn.commit()
     cur.close()
     conn.close()
@@ -26,7 +25,7 @@ def deletePlayers():
     """Remove all the player records from the database."""
     conn = connect()
     cur = conn.cursor()
-    cur.execute("DELETE FROM players")
+    cur.execute("DELETE FROM players;")
     cur.close()
     conn.commit()
     conn.close()
@@ -54,8 +53,8 @@ def registerPlayer(name):
     conn = connect()
     cur = conn.cursor()
     cur.execute(
-        "INSERT INTO players (name, wins, losses) "
-        "VALUES (%s, 0, 0)",(name,) )
+        "INSERT INTO players (name) "
+        "VALUES (%s)",(name,) )
     conn.commit()
     cur.close()
     conn.close()
@@ -77,9 +76,12 @@ def playerStandings():
     conn = connect()
     cur = conn.cursor()
     cur.execute(
-        "SELECT id, name, wins, sum(wins + losses) as matches "  
-        "FROM players " 
-        "GROUP BY id;")
+        "SELECT players.id, players.name, count(matches.winner_id) as wins, "
+        "(select count(*) from matches where players.id = matches.winner_id or players.id = matches.loser_id) "  
+        "FROM players left join matches "
+        "ON players.id = matches.winner_id " 
+        "GROUP BY players.id "
+        "ORDER BY wins DESC")
     standings = cur.fetchall()
     cur.close()
     conn.close()
@@ -96,15 +98,8 @@ def reportMatch(winner, loser):
     conn = connect()
     cur = conn.cursor()
     cur.execute(
-        "INSERT INTO matches (player_a, player_b, winner) "
-        "values (%s, %s, %s);", (winner, loser, winner,))
-    cur.execute(
-        "UPDATE players "
-        "set wins = wins + 1 "
-        "WHERE id = %s;", (winner,))
-    cur.execute(
-        "UPDATE players "
-        "set losses = losses + 1 where id = %s;", (loser,))
+        "INSERT INTO matches (winner_id, loser_id) "
+        "values (%s, %s);", (winner, loser))
     conn.commit()
     cur.close()
     conn.close()
@@ -126,15 +121,7 @@ def swissPairings():
         name2: the second player's name
     """
     list_of_pairs = []
-    conn = connect()
-    cur = conn.cursor()
-    cur.execute(
-        "SELECT * FROM players "
-        "ORDER BY wins DESC;")
-    for i in range(0, countPlayers()/2):
-        player_1 = cur.fetchone()
-        player_2 = cur.fetchone()
-        list_of_pairs.append((player_1[0], player_1[1], player_2[0], player_2[1]))
+    players = playerStandings()
+    for i in range(0,len(players), 2):
+        list_of_pairs.append((players[i][0], players[i][1],players[i+1][0], players[i+1][1] ))
     return list_of_pairs
-    cur.close()
-    conn.close()

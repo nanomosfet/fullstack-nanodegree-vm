@@ -7,15 +7,17 @@
 -- these lines here.
 
 
+CREATE DATABASE tournament;
+
+\c tournament
+
 CREATE TABLE players (
 	id serial primary key,
-	name text,
-	wins integer,
-	losses integer);
+	name text);
 
 CREATE TABLE matches (
 	id serial primary key,
-	player_A integer references players(id),
-	player_B integer references players(id),
-	winner integer references players(id) );
+	winner_id integer references players(id),
+	loser_id integer references players(id));
+
 
